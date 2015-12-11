@@ -1,5 +1,7 @@
 # json-to-flow
-Convert model schemata into Flow types (.js.flow)
+
+Convert [swagger](http://swagger.io)-style model schemata into
+Flow [declaration files](http://flowtype.org/blog/2015/12/01/Version-0.19.0.html#declaration-files) (.js.flow).
 
 ### Usage
 
@@ -7,6 +9,9 @@ See [the template](template.ejs) for more details.
 
 ```js
 var jsonToFlow = require('json-to-flow');
+
+// You can generate this yourself from tooling,
+// or use the `definitions` property on a Swagger spec.
 var schema = {
   User: {
     // primitives
