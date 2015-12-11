@@ -1,0 +1,40 @@
+{
+  "name": "json-to-flow",
+  "version": "0.0.1",
+  "description": "Convert JSON type definitions to Flow types.",
+  "main": "index.js",
+  "dependencies": {
+    "opt": "^0.1.14",
+    "ejs": "^2.3.4"
+  },
+  "devDependencies": {
+    "eslint": "^1.10.3",
+    "lodash": "^3.10.1",
+    "mocha": "^2.3.4",
+    "pre-commit": "^1.1.2"
+  },
+  "scripts": {
+    "test": "mocha test/*.spec.js",
+    "lint": "echo 'Linting...'; eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/STRML/json-to-flow.git"
+  },
+  "keywords": [
+    "json",
+    "flow",
+    "model",
+    "schema"
+  ],
+  "precommit": [
+    "lint",
+    "test"
+  ],
+  "author": "Samuel Reed <samuel.trace.reed@gmail.com> (http://strml.net/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/STRML/json-to-flow/issues"
+  },
+  "homepage": "https://github.com/STRML/json-to-flow#readme"
+}
