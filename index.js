@@ -64,10 +64,18 @@ function generateJS(modelName, modelSchema, options) {
 var refRegex = /\/(\w+?)$/;
 function translateSchema(modelSchema) {
   return Object.keys(modelSchema).reduce(function(memo, key) {
-    var field = modelSchema[key];
-    memo[key] = {type: field.$ref ? field.$ref.match(refRegex)[1] : field.type};
+    memo[key] = translateField(modelSchema[key]);
     return memo;
   }, {});
+}
+
+function translateField(field) {
+  if (field.items) {
+    return {type: 'Array<' + translateField(field.items).type + '>'};
+  } else {
+    return {type: field.$ref ? field.$ref.match(refRegex)[1] : field.type};
+  }
+
 }
 
 module.exports = generateDefinitions;

@@ -19,7 +19,7 @@ var RESULTS = path.join(__dirname, 'results');
 //     type: 'string'
 //   }
 // }, ...}
-var models = ['Order', 'Instrument', 'User', 'Margin'];
+var models = ['Order', 'Instrument', 'User', 'ApiKey'];
 var schemata = _(data.definitions)
 .pick(models)
 .mapValues('properties')
