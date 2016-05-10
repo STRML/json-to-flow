@@ -7,6 +7,9 @@ Flow [declaration files](http://flowtype.org/blog/2015/12/01/Version-0.19.0.html
 
 See [the template](template.ejs) for more details.
 
+You can use your own custom template via the `templateFile` property, or your own template function
+via the `templateFn` property.
+
 ```js
 var jsonToFlow = require('json-to-flow');
 
