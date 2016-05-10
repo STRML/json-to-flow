@@ -70,6 +70,34 @@ describe('json-to-flow', function() {
       done();
     });
   });
+
+  it('supports a custom templatePath', function(done) {
+    jsonToFlow(schemata, {
+      modelSuperClass: 'Model',
+      modelSuperClassPath: 'models/_model',
+      templatePath: path.join(__dirname, 'fixtures', 'customTemplate.ejs')
+    }, function(err, results) {
+      assert.equal(err, null);
+      assert.equal(_.isEqual(Object.keys(results), models), true);
+      assert.equal(results.User, fs.readFileSync(path.join(EXPECTED, 'User.custom.js.flow')).toString());
+      done();
+    });
+  });
+
+  it('supports a custom template fn', function(done) {
+    jsonToFlow(schemata, {
+      modelSuperClass: 'Model',
+      modelSuperClassPath: 'models/_model',
+      templateFn: function(data) {
+        return 'custom template for ' + data.modelName;
+      }
+    }, function(err, results) {
+      assert.equal(err, null);
+      assert.equal(_.isEqual(Object.keys(results), models), true);
+      assert.equal(results.User, 'custom template for User');
+      done();
+    });
+  });
 });
 
 

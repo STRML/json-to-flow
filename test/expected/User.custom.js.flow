@@ -1,0 +1,21 @@
+// @flow
+import {Model} from 'models/_model';
+
+export type UserModel {
+  id: number;
+  firstname: string;
+  lastname: string;
+  status: string;
+  username: string;
+  email: string;
+  phone: string;
+  countryCode: number;
+  created: string;
+  lastUpdated: string;
+  preferences: UserPreferences;
+  TFAEnabled: string;
+  affiliateID: string;
+  pgpPubKey: string;
+  country: string;
+  disabled: boolean;
+}

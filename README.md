@@ -49,7 +49,10 @@ var schema = {
 jsonToFlow(schema, {
   modelSuperClass: 'Model',
   modelSuperClassPath: 'models/_model'
-  targetPath: path.join(__dirname, 'models')
+  targetPath: path.join(__dirname, 'models'),
+  // templatePath: string, // Pass an optional abs ejs file path, or
+  // template: (data: {modelName: string, modelSchema: string,
+  //                   modelSuperClass: string, ...options}) => string
 }, function(err, results) {
   if (err) return console.error(err);
   console.log(results);

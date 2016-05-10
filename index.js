@@ -1,19 +1,38 @@
 var fs = require('fs');
 var path = require('path');
 var ejs = require('ejs');
-var templateText = fs.readFileSync(path.join(__dirname, 'template.ejs')).toString('utf8');
-var template = ejs.compile(templateText);
+var assign = require('object-assign');
 
 var defaults = {
   modelSuperClass: 'Model',
-  additionalTypes: []
+  additionalTypes: [],
+  templatePath: path.join(__dirname, 'template.ejs')
 };
+
+var templateCache = {};
+templateCache[defaults.templatePath] = ejs.compile(fs.readFileSync(defaults.templatePath).toString('utf8'));
 
 // This expects an object containing model definitions conforming to the Swagger spec.
 // On a typical swagger.json this would be the 'definitions' key.
 // See test/ for an example.
 // On callback, if there is an error, it's either a template generation error or a file writing error.
 function generateDefinitions(schemataObj, options, cb) {
+
+  // Allow user to pass in a template function or a file path.
+  if (!options.templateFn && options.templatePath) {
+    if (!templateCache[options.templatePath]) {
+      templateCache[options.templatePath] = ejs.compile(fs.readFileSync(options.templatePath).toString('utf8'));
+    }
+    options = assign({
+      templateFn: templateCache[options.templatePath]
+    }, options);
+  } else if (!options.templateFn && !options.templatePath) {
+    options = assign({
+      templatePath: defaults.templatePath,
+      templateFn: templateCache[defaults.templatePath]
+    }, options);
+  }
+
   var results;
   try {
     results = generateAllResults(schemataObj, options);
@@ -56,8 +75,8 @@ function generateAllResults(schemataObj, options) {
 
 function generateJS(modelName, modelSchema, options) {
   var schema = translateSchema(modelSchema);
-  var data = Object.assign({}, defaults, options, {modelName: modelName, modelSchema: schema});
-  return template(data);
+  var data = assign({}, defaults, options, {modelName: modelName, modelSchema: schema});
+  return options.templateFn(data);
 }
 
 // Translates $refs

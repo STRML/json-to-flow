@@ -1,0 +1,12 @@
+// @flow
+import {<%= modelSuperClass %>} from '<%= modelSuperClassPath %>';
+
+<% additionalTypes.forEach(function(value, key) { -%>
+export type <%= key %> = <%- value %>; <% /* TODO */ %>
+<% }); -%>
+<%= additionalTypes.length ? '\n' : '' -%>
+export type <%= modelName %>Model {
+<% Object.keys(modelSchema).forEach(function(key) { -%>
+  <%= key %>: <%- modelSchema[key].type %>;
+<% }); -%>
+}

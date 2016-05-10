@@ -4,8 +4,9 @@
   "description": "Convert JSON type definitions to Flow types.",
   "main": "index.js",
   "dependencies": {
-    "opt": "^0.1.14",
-    "ejs": "^2.3.4"
+    "ejs": "^2.3.4",
+    "object-assign": "^4.1.0",
+    "opt": "^0.1.14"
   },
   "devDependencies": {
     "eslint": "^1.10.3",
