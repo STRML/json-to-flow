@@ -34,8 +34,10 @@ before(function() {
 describe('json-to-flow', function() {
   it('generates definitions without error', function(done) {
     jsonToFlow(schemata, {
-      modelSuperClass: 'Model',
-      modelSuperClassPath: 'models/_model',
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
       targetPath: path.join(__dirname, 'results')
     }, function(err, results) {
       assert.equal(err, null);
@@ -54,8 +56,10 @@ describe('json-to-flow', function() {
 
   it('supports targetPath function', function(done) {
     jsonToFlow(schemata, {
-      modelSuperClass: 'Model',
-      modelSuperClassPath: 'models/_model',
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
       targetPath: function(modelName) {
         return path.join(RESULTS, modelName.toLowerCase() + '.es6.flow');
       }
@@ -73,8 +77,10 @@ describe('json-to-flow', function() {
 
   it('supports a custom templatePath', function(done) {
     jsonToFlow(schemata, {
-      modelSuperClass: 'Model',
-      modelSuperClassPath: 'models/_model',
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
       templatePath: path.join(__dirname, 'fixtures', 'customTemplate.ejs')
     }, function(err, results) {
       assert.equal(err, null);
@@ -86,8 +92,10 @@ describe('json-to-flow', function() {
 
   it('supports a custom template fn', function(done) {
     jsonToFlow(schemata, {
-      modelSuperClass: 'Model',
-      modelSuperClassPath: 'models/_model',
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
       templateFn: function(data) {
         return 'custom template for ' + data.modelName;
       }

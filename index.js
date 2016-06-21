@@ -4,9 +4,12 @@ var ejs = require('ejs');
 var assign = require('object-assign');
 
 var defaults = {
-  modelSuperClass: 'Model',
-  additionalTypes: [],
-  templatePath: path.join(__dirname, 'template.ejs')
+  templatePath: path.join(__dirname, 'template.ejs'),
+  templateData: {
+    additionalTypes: {},
+    modelSuperClass: 'Model',
+  },
+  extension: '.js.flow'
 };
 
 var templateCache = {};
@@ -18,19 +21,15 @@ templateCache[defaults.templatePath] = ejs.compile(fs.readFileSync(defaults.temp
 // On callback, if there is an error, it's either a template generation error or a file writing error.
 function generateDefinitions(schemataObj, options, cb) {
 
+  options.templateData = assign({}, defaults.templateData, options.templateData || {});
+  options = assign({}, defaults, options);
+
   // Allow user to pass in a template function or a file path.
   if (!options.templateFn && options.templatePath) {
     if (!templateCache[options.templatePath]) {
       templateCache[options.templatePath] = ejs.compile(fs.readFileSync(options.templatePath).toString('utf8'));
     }
-    options = assign({
-      templateFn: templateCache[options.templatePath]
-    }, options);
-  } else if (!options.templateFn && !options.templatePath) {
-    options = assign({
-      templatePath: defaults.templatePath,
-      templateFn: templateCache[defaults.templatePath]
-    }, options);
+    options.templateFn = templateCache[options.templatePath];
   }
 
   var results;
@@ -60,7 +59,7 @@ function writeAllResults(results, options, cb) {
     if (typeof options.targetPath === 'function') {
       filePath = options.targetPath(modelName);
     } else {
-      filePath = path.join(options.targetPath, modelName + '.js.flow');
+      filePath = path.join(options.targetPath, modelName + options.extension);
     }
     fs.writeFile(filePath, results[modelName], done);
   });
@@ -75,7 +74,7 @@ function generateAllResults(schemataObj, options) {
 
 function generateJS(modelName, modelSchema, options) {
   var schema = translateSchema(modelSchema);
-  var data = assign({}, defaults, options, {modelName: modelName, modelSchema: schema});
+  var data = assign({}, options.templateData, {modelName: modelName, modelSchema: schema});
   return options.templateFn(data);
 }
 

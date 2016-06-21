@@ -7,8 +7,8 @@ Flow [declaration files](http://flowtype.org/blog/2015/12/01/Version-0.19.0.html
 
 See [the template](template.ejs) for more details.
 
-You can use your own custom template via the `templateFile` property, or your own template function
-via the `templateFn` property.
+You can use your own custom template via the `templatePath` property, or your own template function
+via the `templateFn` property. See the [Options](#options) below.
 
 ```js
 var jsonToFlow = require('json-to-flow');
@@ -60,6 +60,40 @@ jsonToFlow(schema, {
   if (err) return console.error(err);
   console.log(results);
 })
+```
+
+#### Options
+
+```
+// (Shown with type and default value)
+type JSONToFlowOptions = {
+
+  // The path to the default template. You can override this. The entirety of the options
+  // object is passed to the template so you can add anything you like.
+  templatePath: string = path.join(__dirname, 'template.ejs'),
+
+  // The default file extension. Note the leading `.`, intentional so you can add suffixes etc.
+  extension: string = '.js.flow',
+
+  // This is populated at runtime with an ejs.compile() call. Replace this if you want to use another
+  // template engine.
+  templateFn: ?(data: Object) => string = void,
+
+  // If present, defines where the output goes. You can also pass a function.
+  // If not present, will call back with compiled template.
+  targetPath: ?(string | (modelName: string) => string) = void,
+
+  //
+  // Variables used in default template.
+  // Note that `modelName` and `modelSchema` is automatically merged into this on every iteration.
+  //
+  templateData: Object = {
+    // In default template, this is what the exported class extends
+    modelSuperClass: string = 'Model',
+    // In the default template, this is a map of types to add to the top of the file
+    additionalTypes: Object = {},
+  }
+}
 ```
 
 #### Example Output
