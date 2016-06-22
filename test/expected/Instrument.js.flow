@@ -6,10 +6,10 @@ export class InstrumentModel extends Model {
   rootSymbol: string;
   state: string;
   typ: string;
-  listing: string;
-  front: string;
-  expiry: string;
-  relistInterval: string;
+  listing: Date;
+  front: Date;
+  expiry: Date;
+  relistInterval: Date;
   inverseLeg: string;
   sellLeg: string;
   buyLeg: string;
@@ -34,9 +34,9 @@ export class InstrumentModel extends Model {
   takerFee: number;
   settlementFee: number;
   insuranceFee: number;
-  openingTimestamp: string;
-  closingTimestamp: string;
-  sessionInterval: string;
+  openingTimestamp: Date;
+  closingTimestamp: Date;
+  sessionInterval: Date;
   prevClosePrice: number;
   limitDownPrice: number;
   limitUpPrice: number;
@@ -76,5 +76,5 @@ export class InstrumentModel extends Model {
   indicativeTaxRate: number;
   indicativeSettlePrice: number;
   settledPrice: number;
-  timestamp: string;
+  timestamp: Date;
 }

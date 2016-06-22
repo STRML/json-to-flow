@@ -10,5 +10,5 @@ export class ApiKeyModel extends Model {
   permissions: Array<string>;
   enabled: boolean;
   userId: number;
-  created: Date;
+  created: string;
 }

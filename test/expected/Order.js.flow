@@ -28,6 +28,6 @@ export class OrderModel extends Model {
   avgPx: number;
   multiLegReportingType: string;
   text: string;
-  transactTime: string;
-  timestamp: string;
+  transactTime: Date;
+  timestamp: Date;
 }

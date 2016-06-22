@@ -9,7 +9,9 @@ var defaults = {
     additionalTypes: {},
     modelSuperClass: 'Model',
   },
-  extension: '.js.flow'
+  templateExtension: '.js.flow',
+  translateField: translateField,
+  preTemplateFn: null
 };
 
 var templateCache = {};
@@ -35,7 +37,7 @@ function generateDefinitions(schemataObj, options, cb) {
   var results;
   try {
     results = generateAllResults(schemataObj, options);
-  } catch(e) {
+  } catch (e) {
     return process.nextTick(function() { cb(e); }); // don't release zalgo
   }
   if (options.targetPath) {
@@ -46,7 +48,8 @@ function generateDefinitions(schemataObj, options, cb) {
 }
 
 function writeAllResults(results, options, cb) {
-  var keys = Object.keys(results), counter = 0;
+  var keys = Object.keys(results);
+  var counter = 0;
   function done(err) {
     if (counter === -1) return;
     if (++counter === keys.length || err) {
@@ -59,7 +62,7 @@ function writeAllResults(results, options, cb) {
     if (typeof options.targetPath === 'function') {
       filePath = options.targetPath(modelName);
     } else {
-      filePath = path.join(options.targetPath, modelName + options.extension);
+      filePath = path.join(options.targetPath, modelName + options.templateExtension);
     }
     fs.writeFile(filePath, results[modelName], done);
   });
@@ -73,27 +76,34 @@ function generateAllResults(schemataObj, options) {
 }
 
 function generateJS(modelName, modelSchema, options) {
-  var schema = translateSchema(modelSchema);
+  var schema = translateSchema(modelSchema, options);
   var data = assign({}, options.templateData, {modelName: modelName, modelSchema: schema});
+  if (options.preTemplateFn) data = options.preTemplateFn(data);
   return options.templateFn(data);
 }
 
-// Translates $refs
-var refRegex = /\/(\w+?)$/;
-function translateSchema(modelSchema) {
+function translateSchema(modelSchema, options) {
   return Object.keys(modelSchema).reduce(function(memo, key) {
-    memo[key] = translateField(modelSchema[key]);
+    memo[key] = options.translateField(modelSchema[key], options);
     return memo;
   }, {});
 }
 
-function translateField(field) {
+// Translates $refs
+var refRegex = /\/(\w+?)$/;
+function translateField(field, options) {
   if (field.items) {
-    return {type: 'Array<' + translateField(field.items).type + '>'};
-  } else {
-    return {type: field.$ref ? field.$ref.match(refRegex)[1] : field.type};
+    return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
+  } else if (field.type === 'string' && (field.format === 'date' || field.format === 'date-time')) {
+    return {type: 'Date'};
+  } else if (field.$ref) {
+    var match = field.$ref.match(refRegex);
+    if (match.length >= 2) {
+      return {type: field.$ref.match(refRegex)[1]};
+    }
   }
-
+  return field;
 }
 
 module.exports = generateDefinitions;
+module.exports.defaults = assign({}, defaults);

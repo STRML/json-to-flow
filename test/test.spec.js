@@ -106,6 +106,48 @@ describe('json-to-flow', function() {
       done();
     });
   });
+
+  it('supports a preTemplateFn', function(done) {
+    jsonToFlow(schemata, {
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
+      preTemplateFn: function(data) {
+        data.modelName = 'Me';
+        return data;
+      },
+      templateFn: function(data) {
+        return 'custom template for ' + data.modelName;
+      }
+    }, function(err, results) {
+      assert.equal(err, null);
+      assert.equal(_.isEqual(Object.keys(results), models), true);
+      assert.equal(results.User, 'custom template for Me');
+      done();
+    });
+  });
+
+  it('supports a custom translateField', function(done) {
+    jsonToFlow(schemata, {
+      templateData: {
+        modelSuperClass: 'Model',
+        modelSuperClassPath: 'models/_model',
+      },
+      translateField: function translateField(field, options) {
+        if (field.items) {
+          return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
+        }
+        // Removed date ref translation
+        return field;
+      }
+    }, function(err, results) {
+      assert.equal(err, null);
+      var expected = fs.readFileSync(path.join(EXPECTED, 'ApiKey-noDate.js.flow')).toString();
+      assert.equal(expected, results.ApiKey);
+      done();
+    });
+  });
 });
 
 

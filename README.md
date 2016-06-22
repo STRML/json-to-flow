@@ -50,11 +50,13 @@ var schema = {
   }
 };
 jsonToFlow(schema, {
-  modelSuperClass: 'Model',
-  modelSuperClassPath: 'models/_model'
+  templateData: {
+    modelSuperClass: 'Model',
+    modelSuperClassPath: 'models/_model'
+  },
   targetPath: path.join(__dirname, 'models'),
   // templatePath: string, // Pass an optional abs ejs file path, or
-  // template: (data: {modelName: string, modelSchema: string,
+  // templateFn: (data: {modelName: string, modelSchema: string,
   //                   modelSuperClass: string, ...options}) => string
 }, function(err, results) {
   if (err) return console.error(err);
@@ -64,7 +66,7 @@ jsonToFlow(schema, {
 
 #### Options
 
-```
+```js
 // (Shown with type and default value)
 type JSONToFlowOptions = {
 
@@ -73,11 +75,20 @@ type JSONToFlowOptions = {
   templatePath: string = path.join(__dirname, 'template.ejs'),
 
   // The default file extension. Note the leading `.`, intentional so you can add suffixes etc.
-  extension: string = '.js.flow',
+  templateExtension: string = '.js.flow',
 
   // This is populated at runtime with an ejs.compile() call. Replace this if you want to use another
   // template engine.
   templateFn: ?(data: Object) => string = void,
+
+  // Optional hook for transforming data right before it is passed to templateFn.
+  preTemplateFn: ?(data: Object) => Object = void,
+
+  // By default, this translator takes in Swagger spec data and translates it to JS as closely
+  // as is reasonable. You may not like how it does or may want to add your own hooks - do it here.
+  // You can access the default translator at require('json-to-flow').defaults.translateField.
+  translateField: (field: {type?: string, $ref?: string, format?: string}, options: JSONToFlowOptions) =>
+    {type: string} = defaults.fieldTranslator,
 
   // If present, defines where the output goes. You can also pass a function.
   // If not present, will call back with compiled template.

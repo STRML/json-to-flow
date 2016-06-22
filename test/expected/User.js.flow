@@ -10,8 +10,8 @@ export class UserModel extends Model {
   email: string;
   phone: string;
   countryCode: number;
-  created: string;
-  lastUpdated: string;
+  created: Date;
+  lastUpdated: Date;
   preferences: UserPreferences;
   TFAEnabled: string;
   affiliateID: string;
