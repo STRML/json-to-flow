@@ -90,7 +90,8 @@ function translateSchema(modelSchema, options) {
 }
 
 // Translates $refs
-var refRegex = /\/(\w+?)$/;
+var refRegex = /\/([^\/]+?)$/;
+var translations = {'x-any': 'any'};
 function translateField(field, options) {
   if (field.items) {
     return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
@@ -98,8 +99,8 @@ function translateField(field, options) {
     return {type: 'Date'};
   } else if (field.$ref) {
     var match = field.$ref.match(refRegex);
-    if (match.length >= 2) {
-      return {type: field.$ref.match(refRegex)[1]};
+    if (match && match.length >= 2) {
+      return {type: translations[match[1]] || match[1]};
     }
   }
   return field;
