@@ -1,6 +1,6 @@
 {
   "name": "json-to-flow",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Convert JSON type definitions to Flow types.",
   "main": "index.js",
   "dependencies": {
