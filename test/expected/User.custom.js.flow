@@ -1,7 +1,7 @@
 // @flow
 import {Model} from 'models/_model';
 
-export type UserModel {
+export type UserModel = {
   id: number;
   firstname: string;
   lastname: string;
