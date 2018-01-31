@@ -90,7 +90,7 @@ function translateSchema(modelSchema, options) {
 }
 
 // Translates $refs
-var refRegex = /\/([^\/]+?)$/;
+var refRegex = /\/([^/]+?)$/;
 var translations = {'x-any': 'any'};
 function translateField(field, options) {
   if (field.items) {

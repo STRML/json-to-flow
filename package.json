@@ -9,9 +9,9 @@
     "opt": "^0.1.14"
   },
   "devDependencies": {
-    "eslint": "^1.10.3",
-    "lodash": "^3.10.1",
-    "mocha": "^2.3.4",
+    "eslint": "^4.16.0",
+    "lodash": "^4.17.4",
+    "mocha": "^5.0.0",
     "pre-commit": "^1.1.2"
   },
   "scripts": {
