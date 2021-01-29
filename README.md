@@ -1,6 +1,6 @@
 # json-to-flow
 
-Convert [swagger](http://swagger.io)-style model schemata into
+Convert [swagger](http://swagger.io) model schemata into
 Flow [declaration files](http://flowtype.org/blog/2015/12/01/Version-0.19.0.html#declaration-files) (.js.flow).
 
 ### Usage
@@ -51,12 +51,12 @@ const schema = {
         type: 'Promise<Array<Foo>>'
       }
     },
-    "required": [
+    required: [
       "id",
       "fullname"
     ],
     // If true, will export an inexact object (`{...}`)
-    "additionalProperties": false
+    additionalProperties: false
   }
 };
 jsonToFlow(schema, {
@@ -74,47 +74,89 @@ jsonToFlow(schema, {
 .catch(console.error);
 ```
 
+You can also use the CLI:
+
+```
+yarn json-to-flow --help
+
+Options:
+  --help               Show help                                       [boolean]
+  --version            Show version number                             [boolean]
+  --superClass         The name of the class your generated models should
+                       extend.                       [string] [default: "Model"]
+  --superClassPath     The import path for the generated model superclass.
+                                             [string] [default: "models/_model"]
+  --templatePath       Optional template file override.                 [string]
+  --targetPath         The target path for generated files.  [string] [required]
+  --templateExtension  The output file extension. [string] [default: ".js.flow"]
+  --inputPath          The input Swagger/OpenAPI JSON file path.
+                                                             [string] [required]
+
+$ yarn json-to-flow --inputPath swagger.json --targetPath types/auto-generated/
+```
+
 #### Options
 
 ```js
-// (Shown with type and default value)
-type JSONToFlowOptions = {
 
+export type FullSwaggerSchema = {
+  [key: string]: SwaggerModelSchema,
+};
+export type SwaggerModelSchema = {
+  properties: {[key: string]: Field},
+  required?: string[],
+  additionalProperties?: boolean,
+};
+export type ModelSchema = {
+  [key: string]: FieldOutput;
+};
+export type AllModelSchemata = {
+  [modelName: string]: ModelSchema
+};
+// Note you can add your own fields to this, if your template knows to expect them.
+export type TemplateData = {
+  // In the default template, this is a map of types to add to the top of the file
+  additionalTypes: {[key: string]: Field},
+  // In default template, this is what the exported class extends
+  modelSuperClass: string,
+  // This is the file location of that extended class
+  modelSuperClassPath: string,
+  modelName: string, // automatically filled in
+  modelSchema: ModelSchema, // automatically filled in
+};
+export type Field = {type: string, $ref?: string, format?: string, items?: Field};
+export type FieldOutput = {type: string, $ref?: string, format?: string, required: boolean};
+
+export type Options = {
   // The path to the default template. You can override this. The entirety of the options
   // object is passed to the template so you can add anything you like.
   templatePath: string = path.join(__dirname, 'template.ejs'),
-
-  // The default file extension. Note the leading `.`, intentional so you can add suffixes etc.
-  templateExtension: string = '.js.flow',
-
-  // This is populated at runtime with an ejs.compile() call. Replace this if you want to use another
-  // template engine.
-  templateFn: ?(data: Object) => string = void,
-
-  // Optional hook for transforming data right before it is passed to templateFn.
-  preTemplateFn: ?(data: Object) => Object = void,
-
-  // By default, this translator takes in Swagger spec data and translates it to JS as closely
-  // as is reasonable. You may not like how it does or may want to add your own hooks - do it here.
-  // You can access the default translator at require('json-to-flow').defaults.translateField.
-  translateField: (field: {type?: string, $ref?: string, format?: string}, options: JSONToFlowOptions) =>
-    {type: string} = defaults.fieldTranslator,
-
-  // If present, defines where the output goes. You can also pass a function.
-  // If not present, will call back with compiled template.
-  targetPath: ?(string | (modelName: string) => string) = void,
 
   //
   // Variables used in default template.
   // Note that `modelName` and `modelSchema` is automatically merged into this on every iteration.
   //
-  templateData: Object = {
-    // In default template, this is what the exported class extends
-    modelSuperClass: string = 'Model',
-    // In the default template, this is a map of types to add to the top of the file
-    additionalTypes: Object = {},
-  }
-}
+  templateData: $Shape<TemplateData> = {modelSuperClass: 'Model', modelSuperClassPath: 'models/_model'},
+
+  // If present, defines where the output goes. You can also pass a function.
+  // If not present, will call back with compiled template.
+  targetPath?: string | (modelName: string) => string,
+
+  // The default target file extension. Note the leading `.`, intentional so you can add suffixes etc.
+  templateExtension: string = '.js.flow',
+
+  // By default, this translator takes in Swagger spec data and translates it to JS as closely
+  // as is reasonable. You may not like how it does or may want to add your own hooks - do it here.
+  // You can access the default translator at require('json-to-flow').defaults.translateField.
+  translateField: (Field, Options, SwaggerModelSchema, string) => FieldOutput = defaults.fieldTranslator,
+
+  // Optional hook for transforming data right before it is passed to templateFn.
+  preTemplateFn?: ?(TemplateData) => TemplateData,
+
+  // This is populated at runtime with an ejs.compile() call. Replace this if you want to use another
+  // template engine.
+  templateFn: (TemplateData) => string,
+};
 ```
 
 #### Example Output
@@ -129,6 +171,7 @@ export class UserModel extends Model {
   created: Date;
   matcher: RegExp;
   childObj: CustomType;
+  optionalType: ?string,
   array: Array<string>;
   arrayModels: Array<Pet>;
   literal: Promise<Array<Foo>>;

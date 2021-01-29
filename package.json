@@ -3,12 +3,15 @@
   "version": "0.3.2",
   "description": "Convert JSON type definitions to Flow types.",
   "main": "index.js",
+  "bin": {
+    "json-to-flow": "cli.js"
+  },
   "engines": {
     "node": "^10.13.0 || ^12.13.0 || >=14.0.0"
   },
   "dependencies": {
     "ejs": "^3.1.5",
-    "opt": "^0.1.14"
+    "yargs": "^16.2.0"
   },
   "devDependencies": {
     "eslint": "7.18.0",
