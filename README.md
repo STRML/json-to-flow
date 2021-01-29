@@ -11,11 +11,11 @@ You can use your own custom template via the `templatePath` property, or your ow
 via the `templateFn` property. See the [Options](#options) below.
 
 ```js
-var jsonToFlow = require('json-to-flow');
+const jsonToFlow = require('json-to-flow');
 
 // You can generate this yourself from tooling,
 // or use the `definitions` property on a Swagger spec.
-var schema = {
+const schema = {
   User: {
     // primitives
     id: {type: 'number'},
@@ -58,10 +58,10 @@ jsonToFlow(schema, {
   // templatePath: string, // Pass an optional abs ejs file path, or
   // templateFn: (data: {modelName: string, modelSchema: string,
   //                   modelSuperClass: string, ...options}) => string
-}, function(err, results) {
-  if (err) return console.error(err);
+}).then((results) => {
   console.log(results);
 })
+.catch(console.error);
 ```
 
 #### Options

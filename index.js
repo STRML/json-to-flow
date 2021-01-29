@@ -1,9 +1,12 @@
-var fs = require('fs');
-var path = require('path');
-var ejs = require('ejs');
-var assign = require('object-assign');
+const fs = require('fs');
+const path = require('path');
+const ejs = require('ejs');
+const {promisify} = require('util');
 
-var defaults = {
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
+
+const defaults = {
   templatePath: path.join(__dirname, 'template.ejs'),
   templateData: {
     additionalTypes: {},
@@ -14,58 +17,45 @@ var defaults = {
   preTemplateFn: null
 };
 
-var templateCache = {};
-templateCache[defaults.templatePath] = ejs.compile(fs.readFileSync(defaults.templatePath).toString('utf8'));
+// Storage for precompiled templates
+const templateCache = {};
 
 // This expects an object containing model definitions conforming to the Swagger spec.
 // On a typical swagger.json this would be the 'definitions' key.
 // See test/ for an example.
 // On callback, if there is an error, it's either a template generation error or a file writing error.
-function generateDefinitions(schemataObj, options, cb) {
-
-  options.templateData = assign({}, defaults.templateData, options.templateData || {});
-  options = assign({}, defaults, options);
+async function generateDefinitions(schemataObj, options) {
+  options = {
+    ...defaults,
+    ...options,
+    templateData: {...defaults.templateData, ...options.templateData},
+  };
 
   // Allow user to pass in a template function or a file path.
   if (!options.templateFn && options.templatePath) {
     if (!templateCache[options.templatePath]) {
-      templateCache[options.templatePath] = ejs.compile(fs.readFileSync(options.templatePath).toString('utf8'));
+      templateCache[options.templatePath] = ejs.compile((await readFile(options.templatePath)).toString('utf8'));
     }
     options.templateFn = templateCache[options.templatePath];
   }
 
-  var results;
-  try {
-    results = generateAllResults(schemataObj, options);
-  } catch (e) {
-    return process.nextTick(function() { cb(e); }); // don't release zalgo
-  }
+  const results = generateAllResults(schemataObj, options);
   if (options.targetPath) {
-    writeAllResults(results, options, cb);
-  } else {
-    process.nextTick(function() { cb(null, results); });
+    await writeAllResults(results, options);
   }
+  return results;
 }
 
-function writeAllResults(results, options, cb) {
-  var keys = Object.keys(results);
-  var counter = 0;
-  function done(err) {
-    if (counter === -1) return;
-    if (++counter === keys.length || err) {
-      counter = -1;
-      return cb(err, results);
-    }
-  }
-  keys.forEach(function(modelName) {
-    var filePath;
+function writeAllResults(results, options) {
+  return Promise.all(Object.keys(results).map(function(modelName) {
+    let filePath;
     if (typeof options.targetPath === 'function') {
       filePath = options.targetPath(modelName);
     } else {
       filePath = path.join(options.targetPath, modelName + options.templateExtension);
     }
-    fs.writeFile(filePath, results[modelName], done);
-  });
+    return writeFile(filePath, results[modelName]);
+  }));
 }
 
 function generateAllResults(schemataObj, options) {
@@ -76,8 +66,8 @@ function generateAllResults(schemataObj, options) {
 }
 
 function generateJS(modelName, modelSchema, options) {
-  var schema = translateSchema(modelSchema, options);
-  var data = assign({}, options.templateData, {modelName: modelName, modelSchema: schema});
+  const schema = translateSchema(modelSchema, options);
+  let data = {...options.templateData, modelName: modelName, modelSchema: schema};
   if (options.preTemplateFn) data = options.preTemplateFn(data);
   return options.templateFn(data);
 }
@@ -90,15 +80,15 @@ function translateSchema(modelSchema, options) {
 }
 
 // Translates $refs
-var refRegex = /\/([^/]+?)$/;
-var translations = {'x-any': 'any'};
+const refRegex = /\/([^/]+?)$/;
+const translations = {'x-any': 'any'};
 function translateField(field, options) {
   if (field.items) {
     return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
   } else if (field.type === 'string' && (field.format === 'date' || field.format === 'date-time')) {
     return {type: 'Date'};
   } else if (field.$ref) {
-    var match = field.$ref.match(refRegex);
+    const match = field.$ref.match(refRegex);
     if (match && match.length >= 2) {
       return {type: translations[match[1]] || match[1]};
     }
@@ -107,4 +97,4 @@ function translateField(field, options) {
 }
 
 module.exports = generateDefinitions;
-module.exports.defaults = assign({}, defaults);
+module.exports.defaults = {...defaults};

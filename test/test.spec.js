@@ -1,14 +1,14 @@
 'use strict';
-var data = require('./swagger.json');
-var jsonToFlow = require('../index');
-var path = require('path');
-var _ = require('lodash');
-var assert = require('assert');
-var fs = require('fs');
+const data = require('./swagger.json');
+const jsonToFlow = require('../index');
+const path = require('path');
+const _ = require('lodash');
+const assert = require('assert');
+const fs = require('fs');
 /*eslint-env node, mocha */
 
-var EXPECTED = path.join(__dirname, 'expected');
-var RESULTS = path.join(__dirname, 'results');
+const EXPECTED = path.join(__dirname, 'expected');
+const RESULTS = path.join(__dirname, 'results');
 
 // Data is like:
 // {Model: {
@@ -19,8 +19,8 @@ var RESULTS = path.join(__dirname, 'results');
 //     type: 'string'
 //   }
 // }, ...}
-var models = ['Order', 'Instrument', 'User', 'ApiKey'];
-var schemata = _(data.definitions)
+const models = ['Order', 'Instrument', 'User', 'ApiKey'];
+const schemata = _(data.definitions)
 .pick(models)
 .mapValues('properties')
 .value();
@@ -32,18 +32,15 @@ before(function() {
 });
 
 describe('json-to-flow', function() {
-  it('generates definitions without error', function(done) {
-    jsonToFlow(schemata, {
+  it('generates definitions without error', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
       },
       targetPath: path.join(__dirname, 'results')
-    }, function(err, results) {
-      assert.equal(err, null);
-      assert.equal(_.isEqual(Object.keys(results), models), true);
-      done();
     });
+    assert.equal(_.isEqual(Object.keys(results), models), true);
   });
 
   it('generates definition templates equal to spec', function() {
@@ -54,8 +51,8 @@ describe('json-to-flow', function() {
     });
   });
 
-  it('supports targetPath function', function(done) {
-    jsonToFlow(schemata, {
+  it('supports targetPath function', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
@@ -63,35 +60,29 @@ describe('json-to-flow', function() {
       targetPath: function(modelName) {
         return path.join(RESULTS, modelName.toLowerCase() + '.es6.flow');
       }
-    }, function(err, results) {
-      assert.equal(err, null);
-      assert.equal(_.isEqual(Object.keys(results), models), true);
-      Object.keys(results).forEach(function(modelName) {
-        assert.doesNotThrow(function() {
-          fs.accessSync(path.join(RESULTS, modelName.toLowerCase() + '.es6.flow'));
-        });
+    });
+    assert.equal(_.isEqual(Object.keys(results), models), true);
+    Object.keys(results).forEach(function(modelName) {
+      assert.doesNotThrow(function() {
+        fs.accessSync(path.join(RESULTS, modelName.toLowerCase() + '.es6.flow'));
       });
-      done();
     });
   });
 
-  it('supports a custom templatePath', function(done) {
-    jsonToFlow(schemata, {
+  it('supports a custom templatePath', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
       },
       templatePath: path.join(__dirname, 'fixtures', 'customTemplate.ejs')
-    }, function(err, results) {
-      assert.equal(err, null);
-      assert.equal(_.isEqual(Object.keys(results), models), true);
-      assert.equal(results.User, fs.readFileSync(path.join(EXPECTED, 'User.custom.js.flow')).toString());
-      done();
     });
+    assert.equal(_.isEqual(Object.keys(results), models), true);
+    assert.equal(results.User, fs.readFileSync(path.join(EXPECTED, 'User.custom.js.flow')).toString());
   });
 
-  it('supports a custom template fn', function(done) {
-    jsonToFlow(schemata, {
+  it('supports a custom template fn', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
@@ -99,16 +90,13 @@ describe('json-to-flow', function() {
       templateFn: function(data) {
         return 'custom template for ' + data.modelName;
       }
-    }, function(err, results) {
-      assert.equal(err, null);
-      assert.equal(_.isEqual(Object.keys(results), models), true);
-      assert.equal(results.User, 'custom template for User');
-      done();
     });
+    assert.equal(_.isEqual(Object.keys(results), models), true);
+    assert.equal(results.User, 'custom template for User');
   });
 
-  it('supports a preTemplateFn', function(done) {
-    jsonToFlow(schemata, {
+  it('supports a preTemplateFn', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
@@ -120,16 +108,13 @@ describe('json-to-flow', function() {
       templateFn: function(data) {
         return 'custom template for ' + data.modelName;
       }
-    }, function(err, results) {
-      assert.equal(err, null);
-      assert.equal(_.isEqual(Object.keys(results), models), true);
-      assert.equal(results.User, 'custom template for Me');
-      done();
     });
+    assert.equal(_.isEqual(Object.keys(results), models), true);
+    assert.equal(results.User, 'custom template for Me');
   });
 
-  it('supports a custom translateField', function(done) {
-    jsonToFlow(schemata, {
+  it('supports a custom translateField', async function() {
+    const results = await jsonToFlow(schemata, {
       templateData: {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
@@ -141,12 +126,9 @@ describe('json-to-flow', function() {
         // Removed date ref translation
         return field;
       }
-    }, function(err, results) {
-      assert.equal(err, null);
-      var expected = fs.readFileSync(path.join(EXPECTED, 'ApiKey-noDate.js.flow')).toString();
-      assert.equal(expected, results.ApiKey);
-      done();
     });
+    const expected = fs.readFileSync(path.join(EXPECTED, 'ApiKey-noDate.js.flow')).toString();
+    assert.equal(expected, results.ApiKey);
   });
 });
 

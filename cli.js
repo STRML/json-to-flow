@@ -1,10 +1,9 @@
-'use strict';
-var path = require('path');
-var Opt = require('opt');
-var jsonToFlow = require('./index');
-var opt = Opt.create();
+const path = require('path');
+const Opt = require('opt');
+const jsonToFlow = require('./index');
+const opt = Opt.create();
 
-var config = {
+const config = {
   modelSuperClass: 'Model',
   modelSuperClassPath: 'models/_model',
   templateFile: path.join(__dirname, 'template.ejs')
