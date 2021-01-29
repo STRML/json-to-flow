@@ -3,6 +3,8 @@
 <PROJECT_ROOT>/test/results/.*
 
 [include]
+index.js
+test/test.spec.js
 
 [libs]
 

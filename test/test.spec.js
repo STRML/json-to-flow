@@ -1,11 +1,15 @@
-'use strict';
+// @flow
 const data = require('./swagger.json');
 const jsonToFlow = require('../index');
 const path = require('path');
 const _ = require('lodash');
 const assert = require('assert');
 const fs = require('fs');
-/*eslint-env node, mocha */
+const {before, describe, it} = require('mocha');
+
+/*::
+import type {Field, FieldOutput, Options, SwaggerModelSchema} from '../index';
+*/
 
 const EXPECTED = path.join(__dirname, 'expected');
 const RESULTS = path.join(__dirname, 'results');

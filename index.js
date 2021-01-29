@@ -8,37 +8,41 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 /*::
-type FullSwaggerSchema = {
+export type FullSwaggerSchema = {
   [key: string]: SwaggerModelSchema,
 };
-type SwaggerModelSchema = {
+export type SwaggerModelSchema = {
   properties: {[key: string]: Field},
   required?: string[],
   additionalProperties?: boolean,
 };
-type ModelSchema = {
+export type ModelSchema = {
   [key: string]: FieldOutput;
 };
-type AllModelSchemata = {
+export type AllModelSchemata = {
   [modelName: string]: ModelSchema
 };
-type TemplateData = {
+export type TemplateData = {
   additionalTypes: {[key: string]: Field},
   modelSuperClass: string,
+  modelSuperClassPath: string,
   modelName: string,
   modelSchema: ModelSchema,
 };
-type Options = {
+export type Options = {
   templatePath: string,
   templateData: TemplateData,
   templateExtension: string,
   targetPath?: string | (modelName: string) => string,
   translateField: (Field, Options, SwaggerModelSchema, string) => FieldOutput,
   preTemplateFn?: ?(TemplateData) => TemplateData,
-  templateFn: (TemplateData) => TemplateData,
+  templateFn: (TemplateData) => string,
 };
-type Field = {type: string, $ref?: string, format?: string, items?: Field};
-type FieldOutput = {type: string, $ref?: string, format?: string, required: boolean};
+export type Field = {type: string, $ref?: string, format?: string, items?: Field};
+export type FieldOutput = {type: string, $ref?: string, format?: string, required: boolean};
+export type $DeepShape<O: Object> = Object & $Shape<
+  $ObjMap<O, (<V: Object>(V) => $DeepShape<V>) | (<V>(V) => V)>
+>;
 
 */
 const defaults = {
@@ -46,6 +50,7 @@ const defaults = {
   templateData: {
     additionalTypes: ({}/*: Object */),
     modelSuperClass: 'Model',
+    modelSuperClassPath: 'models/_model',
   },
   templateExtension: '.js.flow',
   translateField: translateField,
@@ -59,7 +64,7 @@ const templateCache = {};
 // On a typical swagger.json this would be the 'definitions' key.
 // See test/ for an example.
 // On callback, if there is an error, it's either a template generation error or a file writing error.
-async function generateDefinitions(schemataObj/*: FullSwaggerSchema */, options/*: Options */)/*: AllModelSchemata */ {
+async function generateDefinitions(schemataObj/*: FullSwaggerSchema */, options/*: $DeepShape<Options> */)/*: AllModelSchemata */ {
   options = {
     ...defaults,
     ...options,
