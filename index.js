@@ -1,3 +1,4 @@
+// @flow
 const fs = require('fs');
 const path = require('path');
 const ejs = require('ejs');
@@ -6,15 +7,49 @@ const {promisify} = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
+/*::
+type FullSwaggerSchema = {
+  [key: string]: SwaggerModelSchema,
+};
+type SwaggerModelSchema = {
+  properties: {[key: string]: Field},
+  required?: string[],
+  additionalProperties?: boolean,
+};
+type ModelSchema = {
+  [key: string]: FieldOutput;
+};
+type AllModelSchemata = {
+  [modelName: string]: ModelSchema
+};
+type TemplateData = {
+  additionalTypes: {[key: string]: Field},
+  modelSuperClass: string,
+  modelName: string,
+  modelSchema: ModelSchema,
+};
+type Options = {
+  templatePath: string,
+  templateData: TemplateData,
+  templateExtension: string,
+  targetPath?: string | (modelName: string) => string,
+  translateField: (Field, Options, SwaggerModelSchema, string) => FieldOutput,
+  preTemplateFn?: ?(TemplateData) => TemplateData,
+  templateFn: (TemplateData) => TemplateData,
+};
+type Field = {type: string, $ref?: string, format?: string, items?: Field};
+type FieldOutput = {type: string, $ref?: string, format?: string, required: boolean};
+
+*/
 const defaults = {
-  templatePath: path.join(__dirname, 'template.ejs'),
+  templatePath: (path.join(__dirname, 'template.ejs')/*: string */),
   templateData: {
-    additionalTypes: {},
+    additionalTypes: ({}/*: Object */),
     modelSuperClass: 'Model',
   },
   templateExtension: '.js.flow',
   translateField: translateField,
-  preTemplateFn: null
+  preTemplateFn: null,
 };
 
 // Storage for precompiled templates
@@ -24,7 +59,7 @@ const templateCache = {};
 // On a typical swagger.json this would be the 'definitions' key.
 // See test/ for an example.
 // On callback, if there is an error, it's either a template generation error or a file writing error.
-async function generateDefinitions(schemataObj, options) {
+async function generateDefinitions(schemataObj/*: FullSwaggerSchema */, options/*: Options */)/*: AllModelSchemata */ {
   options = {
     ...defaults,
     ...options,
@@ -41,40 +76,43 @@ async function generateDefinitions(schemataObj, options) {
 
   const results = generateAllResults(schemataObj, options);
   if (options.targetPath) {
-    await writeAllResults(results, options);
+    await writeAllResults(options.targetPath, results, options.templateExtension);
   }
   return results;
 }
 
-function writeAllResults(results, options) {
+function writeAllResults(targetPath, results, templateExtension) {
   return Promise.all(Object.keys(results).map(function(modelName) {
     let filePath;
-    if (typeof options.targetPath === 'function') {
-      filePath = options.targetPath(modelName);
+    if (typeof targetPath === 'function') {
+      filePath = targetPath(modelName);
     } else {
-      filePath = path.join(options.targetPath, modelName + options.templateExtension);
+      filePath = path.join(targetPath, modelName + templateExtension);
     }
     return writeFile(filePath, results[modelName]);
   }));
 }
 
-function generateAllResults(schemataObj, options) {
+// Given the full schema object, parse each model's definition.
+function generateAllResults(schemataObj/*: FullSwaggerSchema */, options)/*: AllModelSchemata */ {
   return Object.keys(schemataObj).reduce(function(memo, modelName) {
     memo[modelName] = generateJS(modelName, schemataObj[modelName], options);
     return memo;
   }, {});
 }
 
-function generateJS(modelName, modelSchema, options) {
+// Given each model, generate a definition.
+function generateJS(modelName/*: string */, modelSchema/*: SwaggerModelSchema */, options) {
   const schema = translateSchema(modelSchema, options);
   let data = {...options.templateData, modelName: modelName, modelSchema: schema};
   if (options.preTemplateFn) data = options.preTemplateFn(data);
   return options.templateFn(data);
 }
 
-function translateSchema(modelSchema, options) {
-  return Object.keys(modelSchema).reduce(function(memo, key) {
-    memo[key] = options.translateField(modelSchema[key], options);
+// Given a schema, turn the `type` field into something Flow-writable, and add `required.`
+function translateSchema(modelSchema/*: SwaggerModelSchema */, options)/*: ModelSchema */ {
+  return Object.keys(modelSchema.properties).reduce(function(memo, key) {
+    memo[key] = options.translateField(modelSchema.properties[key], options, modelSchema, key);
     return memo;
   }, {});
 }
@@ -82,19 +120,26 @@ function translateSchema(modelSchema, options) {
 // Translates $refs
 const refRegex = /\/([^/]+?)$/;
 const translations = {'x-any': 'any'};
-function translateField(field, options) {
+function translateField(field/*: Field */, options/*: Options */, modelSchema/*: SwaggerModelSchema */, key/*: string */)/*: FieldOutput */ {
+  const fieldDef = {
+    ...field,
+    // Marks a field as required or optional.
+    // Swagger/OpenAPI schemata have a `required` array of keys.
+    required: (modelSchema && modelSchema.required ? modelSchema.required : []).includes(key),
+  };
   if (field.items) {
-    return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
+    fieldDef.type = 'Array<' + options.translateField(field.items, options, modelSchema, key).type + '>';
   } else if (field.type === 'string' && (field.format === 'date' || field.format === 'date-time')) {
-    return {type: 'Date'};
+    fieldDef.type = 'Date';
   } else if (field.$ref) {
     const match = field.$ref.match(refRegex);
     if (match && match.length >= 2) {
-      return {type: translations[match[1]] || match[1]};
+      fieldDef.type = translations[match[1]] || match[1];
     }
   }
-  return field;
+  return fieldDef;
 }
+
 
 module.exports = generateDefinitions;
 module.exports.defaults = {...defaults};

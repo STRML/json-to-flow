@@ -3696,6 +3696,7 @@
         }
       },
       "required": [
+        "id",
         "username",
         "email"
       ],
@@ -3887,7 +3888,9 @@
         "secret",
         "name",
         "nonce",
-        "userId"
+        "userId",
+        "enabled",
+        "created"
       ],
       "additionalProperties": false
     },

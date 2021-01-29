@@ -12,13 +12,14 @@
   },
   "devDependencies": {
     "eslint": "7.18.0",
+    "flow-bin": "^0.143.1",
     "lodash": "^4.17.20",
     "mocha": "^8.2.1",
     "pre-commit": "^1.1.2"
   },
   "scripts": {
     "test": "mocha test/*.spec.js",
-    "lint": "echo 'Linting...'; eslint ."
+    "lint": "echo 'Linting...'; eslint .; flow"
   },
   "repository": {
     "type": "git",

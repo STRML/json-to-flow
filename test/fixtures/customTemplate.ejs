@@ -7,6 +7,6 @@ export type <%= key %> = <%- value %>; <% /* TODO */ %>
 <%= Object.keys(additionalTypes).length ? '\n' : '' -%>
 export type <%= modelName %>Model = {
 <% Object.keys(modelSchema).forEach(function(key) { -%>
-  <%= key %>: <%- modelSchema[key].type %>;
+  <%= key %>: <%- /* note: missing 'required' intentionally */%><%- modelSchema[key].type %>;
 <% }); -%>
 }

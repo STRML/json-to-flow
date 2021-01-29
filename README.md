@@ -15,38 +15,48 @@ const jsonToFlow = require('json-to-flow');
 
 // You can generate this yourself from tooling,
 // or use the `definitions` property on a Swagger spec.
+// Note that this has changed to include the full definition object
+// as of 1.0.0.
 const schema = {
   User: {
-    // primitives
-    id: {type: 'number'},
-    fullname: {type: 'string'},
-    verified: {type: 'boolean'},
-    // builtins
-    created: {type: 'Date'},
-    matcher: {type: 'RegExp'},
+    properties: {
+      // primitives
+      id: {type: 'number'},
+      fullname: {type: 'string'},
+      verified: {type: 'boolean'},
+      // builtins
+      created: {type: 'Date'},
+      matcher: {type: 'RegExp'},
 
-    // custom types
-    childObj: {type: 'CustomType'},
+      // custom types
+      childObj: {type: 'CustomType'},
 
-    // arrays (uses swagger array spec)
-    array: {
-      type: 'array',
-      items: {
-        type: 'string' // could be a custom type or builtin too
+      // arrays (uses swagger array spec)
+      array: {
+        type: 'array',
+        items: {
+          type: 'string' // could be a custom type or builtin too
+        }
+      },
+      arrayModels: {
+        type: 'array',
+        items: {
+          // will translate this into type: 'Pet'
+          $ref:  '#/definitions/Pet'
+        }
+      },
+
+      // Not part of swagger, but illustrating you can put anything in
+      literal: {
+        type: 'Promise<Array<Foo>>'
       }
     },
-    arrayModels: {
-      type: 'array',
-      items: {
-        // will translate this into type: 'Pet'
-        $ref:  '#/definitions/Pet'
-      }
-    },
-
-    // Not part of swagger, but illustrating you can put anything in
-    literal: {
-      type: 'Promise<Array<Foo>>'
-    }
+    "required": [
+      "id",
+      "fullname"
+    ],
+    // If true, will export an inexact object (`{...}`)
+    "additionalProperties": false
   }
 };
 jsonToFlow(schema, {

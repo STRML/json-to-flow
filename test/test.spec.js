@@ -22,7 +22,6 @@ const RESULTS = path.join(__dirname, 'results');
 const models = ['Order', 'Instrument', 'User', 'ApiKey'];
 const schemata = _(data.definitions)
 .pick(models)
-.mapValues('properties')
 .value();
 
 before(function() {
@@ -119,12 +118,18 @@ describe('json-to-flow', function() {
         modelSuperClass: 'Model',
         modelSuperClassPath: 'models/_model',
       },
-      translateField: function translateField(field, options) {
-        if (field.items) {
-          return {type: 'Array<' + options.translateField(field.items, options).type + '>'};
-        }
+      translateField(field/*: Field */, options/*: Options */, modelSchema/*: SwaggerModelSchema */, key/*: string */)/*: FieldOutput */ {
         // Removed date ref translation
-        return field;
+        const fieldDef = {
+          ...field,
+          // Marks a field as required or optional.
+          // Swagger/OpenAPI schemata have a `required` array of keys.
+          required: (modelSchema && modelSchema.required ? modelSchema.required : []).includes(key),
+        };
+        if (field.items) {
+          fieldDef.type = 'Array<' + options.translateField(field.items, options, modelSchema, key).type + '>';
+        }
+        return fieldDef;
       }
     });
     const expected = fs.readFileSync(path.join(EXPECTED, 'ApiKey-noDate.js.flow')).toString();

@@ -9,6 +9,6 @@ export type <%= key %> = <%- value %>; <% /* TODO */ %>
 
 export class <%= modelName %>Model <%= modelSuperClass ? 'extends ' + modelSuperClass : '' %> {
 <% Object.keys(modelSchema).forEach(function(key) { -%>
-  <%= key %>: <%- modelSchema[key].type %>;
+  <%= key %>: <%- modelSchema[key].required ? '' : '?'%><%- modelSchema[key].type %>;
 <% }); -%>
 }

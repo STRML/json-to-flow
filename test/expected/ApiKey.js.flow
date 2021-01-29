@@ -6,8 +6,8 @@ export class ApiKeyModel extends Model {
   secret: string;
   name: string;
   nonce: number;
-  cidr: string;
-  permissions: Array<string>;
+  cidr: ?string;
+  permissions: ?Array<string>;
   enabled: boolean;
   userId: number;
   created: Date;

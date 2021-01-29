@@ -1,0 +1,13 @@
+[ignore]
+<PROJECT_ROOT>/test/expected/.*
+<PROJECT_ROOT>/test/results/.*
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]
