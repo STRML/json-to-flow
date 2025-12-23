@@ -116,7 +116,7 @@ function generateJS(modelName/*: string */, modelSchema/*: SwaggerModelSchema */
 
 // Given a schema, turn the `type` field into something Flow-writable, and add `required.`
 function translateSchema(modelSchema/*: SwaggerModelSchema */, options)/*: ModelSchema */ {
-  return Object.keys(modelSchema.properties).reduce(function(memo, key) {
+  return Object.keys(modelSchema.properties || {}).reduce(function(memo, key) {
     memo[key] = options.translateField(modelSchema.properties[key], options, modelSchema, key);
     return memo;
   }, {});
